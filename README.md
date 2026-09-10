@@ -1,8 +1,18 @@
 # NiriShift
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![Arch Linux](https://img.shields.io/badge/Arch%20Linux-1793D1?logo=arch-linux&logoColor=white)](https://archlinux.org/)
+
 Deck Mode for **Niri** and other Wayland compositors: SDDM session flip between your desktop and Steam Big Picture via ChimeraOS `gamescope-session`.
 
 Inspired by [DeckShift](https://github.com/28allday/deckshift) (Omarchy/Hyprland), reimplemented without Omarchy dependencies.
+
+## Demo
+
+<!-- Replace with docs/assets/demo.gif when available -->
+_Screenshot or GIF coming soon._ See [docs/assets/README-demo.md](docs/assets/README-demo.md) for capture notes.
+
+Flow: desktop (Niri) → `Mod+Shift+G` → Gaming Mode (gamescope-session-steam) → `Super+Shift+R` → desktop.
 
 ## Features
 
@@ -11,6 +21,16 @@ Inspired by [DeckShift](https://github.com/28allday/deckshift) (Omarchy/Hyprland
 - **Exit shortcut**: Super+Shift+R inside Gaming Mode (evdev monitor)
 - **Settings TUI**: `niri-shift-settings` (gum) for display, refresh, multi-monitor
 - **Portal recovery**: optional autostart hook after returning from gaming
+
+## NiriShift vs DeckShift
+
+| | DeckShift | NiriShift |
+|---|-----------|-----------|
+| Compositor | Hyprland / Omarchy | Niri (Hyprland adapter stub) |
+| Settings UI | Omarchy QML plugin | `gum` TUI (`niri-shift-settings`) |
+| Dependencies | Omarchy stack | Arch + SDDM + gamescope-session (no Omarchy) |
+
+Full audit: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Requirements
 
@@ -58,6 +78,11 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the DeckShift audit and Hyp
 
 ## Contributing
 
+PRs welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, backend guidelines, and the PR-first workflow.
+
+- **Questions:** [GitHub Discussions](https://github.com/ind4skylivey/niri-shift/discussions)
+- **Bugs / features:** [Issues](https://github.com/ind4skylivey/niri-shift/issues)
+
 Adapters for Sway and other compositors welcome: add `backends/your-compositor.sh` implementing the backend interface documented in `docs/ARCHITECTURE.md`.
 
 ## License
@@ -66,7 +91,7 @@ GNU General Public License v3.0 or later (GPL-3.0-or-later). See [LICENSE](LICEN
 
 ## Recovery
 
-Black screen after switch: switch to TTY (Ctrl+Alt+F3), then:
+Black screen after switch: see [docs/RECOVERY.md](docs/RECOVERY.md) or switch to TTY (Ctrl+Alt+F3), then:
 
 ```bash
 sudo systemctl restart sddm

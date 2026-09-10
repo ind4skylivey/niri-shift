@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and help
+    url: https://github.com/ind4skylivey/niri-shift/discussions
+    about: Ask about install, SDDM, keybinds, or recovery. Use Discussions for usage questions, not issues.
