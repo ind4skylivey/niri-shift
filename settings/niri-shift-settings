@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+# gum TUI for NiriShift — monitor, refresh, output disable list, session logging.
+set -euo pipefail
+
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/niri-shift"
+CONFIG_FILE="$CONFIG_DIR/config.env"
+GAMESCOPE_CONF="${XDG_CONFIG_HOME:-$HOME/.config}/environment.d/gamescope-session-plus.conf"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/niri-shift"
+
+command -v gum >/dev/null || { echo "Install gum (pacman -S gum)" >&2; exit 1; }
+
+mkdir -p "$CONFIG_DIR" "$(dirname "$GAMESCOPE_CONF")" "$STATE_DIR"
+
+[[ -f "$CONFIG_FILE" ]] || cp "$(dirname "$0")/../config/config.env.example" "$CONFIG_FILE" 2>/dev/null || true
+
+read_env() {
+  local key="$1" default="${2:-}"
+  if [[ -f "$GAMESCOPE_CONF" ]]; then
+    local v
+    v=$(grep -E "^${key}=" "$GAMESCOPE_CONF" 2>/dev/null | tail -1 | cut -d= -f2-)
+    [[ -n "$v" ]] && echo "$v" && return
+  fi
+  if [[ -f "$CONFIG_FILE" ]]; then
+    local v
+    v=$(grep -E "^${key}=" "$CONFIG_FILE" 2>/dev/null | tail -1 | cut -d= -f2-)
+    [[ -n "$v" ]] && echo "$v" && return
+  fi
+  echo "$default"
+}
+
+write_gamescope_kv() {
+  local key="$1" val="$2"
+  mkdir -p "$(dirname "$GAMESCOPE_CONF")"
+  if [[ -f "$GAMESCOPE_CONF" ]] && grep -q "^${key}=" "$GAMESCOPE_CONF"; then
+    sed -i "s|^${key}=.*|${key}=${val}|" "$GAMESCOPE_CONF"
+  else
+    echo "${key}=${val}" >> "$GAMESCOPE_CONF"
+  fi
+  if grep -q "^${key}=" "$CONFIG_FILE" 2>/dev/null; then
+    sed -i "s|^${key}=.*|${key}=${val}|" "$CONFIG_FILE"
+  else
+    echo "${key}=${val}" >> "$CONFIG_FILE"
+  fi
+}
+
+list_outputs() {
+  if command -v niri &>/dev/null && niri msg outputs -j &>/dev/null 2>&1; then
+    niri msg outputs -j | jq -r '.[].name' 2>/dev/null || niri msg outputs 2>/dev/null | awk '{print $1}'
+  elif command -v hyprctl &>/dev/null; then
+    hyprctl monitors -j | jq -r '.[].name' 2>/dev/null
+  else
+    echo "DP-1"
+    echo "DP-2"
+  fi
+}
+
+toggle_session_log() {
+  if [[ -f "$STATE_DIR/capture" ]]; then
+    rm -f "$STATE_DIR/capture"
+    gum style --foreground 212 "Session logging disabled"
+  else
+    touch "$STATE_DIR/capture"
+    gum style --foreground 212 "Session logging enabled"
+  fi
+}
+
+main_menu() {
+  while true; do
+    choice=$(gum choose --header "NiriShift settings" \
+      "Gaming display (OUTPUT_CONNECTOR)" \
+      "Refresh rates (CUSTOM_REFRESH_RATES)" \
+      "Disable outputs on switch (comma-separated)" \
+      "Toggle session file logging" \
+      "Launch Gaming Mode" \
+      "Show keybind help" \
+      "Quit") || exit 0
+
+    case "$choice" in
+      "Gaming display (OUTPUT_CONNECTOR)")
+        cur=$(read_env OUTPUT_CONNECTOR "DP-1")
+        outs=$(list_outputs | tr '\n' ' ')
+        val=$(gum input --placeholder "$cur" --value "$cur" --header "Primary gaming output") || continue
+        write_gamescope_kv OUTPUT_CONNECTOR "$val"
+        ;;
+      "Refresh rates (CUSTOM_REFRESH_RATES)")
+        cur=$(read_env CUSTOM_REFRESH_RATES "60,120,144")
+        val=$(gum input --value "$cur" --header "Comma-separated Hz list") || continue
+        write_gamescope_kv CUSTOM_REFRESH_RATES "$val"
+        ;;
+      "Disable outputs on switch (comma-separated)")
+        cur=$(read_env OUTPUT_CONNECTOR_TO_DISABLE "")
+        val=$(gum input --value "$cur" --header "e.g. DP-2 or HDMI-A-1") || continue
+        write_gamescope_kv OUTPUT_CONNECTOR_TO_DISABLE "$val"
+        ;;
+      "Toggle session file logging")
+        toggle_session_log
+        ;;
+      "Launch Gaming Mode")
+        if gum confirm "Switch to Gaming Mode? (SDDM will restart)"; then
+          exec /usr/local/bin/niri-shift-switch-to-gaming
+        fi
+        ;;
+      "Show keybind help")
+        if [[ -x /usr/local/lib/niri-shift/backend.sh ]]; then
+          # shellcheck source=/dev/null
+          source /usr/local/lib/niri-shift/backend.sh
+          backend_keybind_doc | gum pager
+        else
+          gum style "Mod+Shift+G { spawn-sh \"niri-shift-switch-to-gaming\"; } in keybinds.kdl"
+          gum style "Super+Shift+R to exit gaming session"
+        fi
+        ;;
+      Quit) exit 0 ;;
+    esac
+  done
+}
+
+main_menu

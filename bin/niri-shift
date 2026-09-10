@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+# shellcheck source=../core/common.sh
+source "$ROOT/core/common.sh"
+
+cmd="${1:-help}"
+shift || true
+
+case "$cmd" in
+  version|-V|--version)
+    echo "niri-shift ${NIRI_SHIFT_VERSION}"
+    ;;
+  install)
+    exec "$ROOT/install.sh" "$@"
+    ;;
+  uninstall)
+    exec "$ROOT/uninstall.sh" "$@"
+    ;;
+  settings)
+    exec /usr/local/bin/niri-shift-settings "$@"
+    ;;
+  gaming|switch-to-gaming)
+    exec /usr/local/bin/niri-shift-switch-to-gaming "$@"
+    ;;
+  desktop|switch-to-desktop)
+    exec /usr/local/bin/niri-shift-switch-to-desktop "$@"
+    ;;
+  help|-h|--help)
+    cat <<EOF
+niri-shift ${NIRI_SHIFT_VERSION} — Deck Mode for Niri and other Wayland compositors
+
+Commands:
+  install [--backend niri|hyprland] [--wire-autostart]
+  uninstall [--dry-run]
+  settings          Open gum TUI
+  gaming            Enter Gaming Mode (SDDM session flip)
+  desktop           Exit Gaming Mode (usually Super+Shift+R in gaming session)
+  version
+
+Docs: ${ROOT}/docs/ARCHITECTURE.md
+EOF
+    ;;
+  *)
+    die "Unknown command: $cmd (try: niri-shift help)"
+    ;;
+esac

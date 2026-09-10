@@ -1,0 +1,2 @@
+// Paste inside `binds { }` in ~/.config/niri/modules/keybinds.kdl
+Mod+Shift+G hotkey-overlay-title="Gaming Mode" { spawn-sh "niri-shift-switch-to-gaming"; }
