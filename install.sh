@@ -53,10 +53,14 @@ if [[ $DRY_RUN -eq 1 ]]; then
 else
   info "Installing pacman packages..."
   sudo pacman -S --needed --noconfirm "${PACMAN_DEPS[@]}"
-  if ! check_package gamescope-session-git && ! check_package gamescope-session; then
-    check_aur_helper || die "Install yay/paru for AUR packages"
+  if ! check_package gamescope-session-git \
+    && ! check_package gamescope-session \
+    && ! check_package gamescope-session-cachyos; then
+    check_aur_helper || die "Install paru/yay for AUR packages, or: pacman -S gamescope-session-cachyos (CachyOS)"
     info "Installing AUR gamescope-session packages..."
     aur_install "${AUR_DEPS[@]}"
+  elif check_package gamescope-session-cachyos; then
+    info "Using gamescope-session-cachyos (provides gamescope-session-git + gamescope-session-steam-git)"
   fi
 fi
 
@@ -142,7 +146,12 @@ DESKTOP
 rm -f /tmp/.gaming-session-active
 sudo -n /usr/local/bin/niri-shift-gaming-session-switch desktop 2>/dev/null || true
 timeout 5 steam -shutdown 2>/dev/null || true
-sleep 1
+sleep 2
+DESKTOP_SESSION_CHECK=$(grep "^Session=" /etc/sddm.conf.d/zzzz-niri-shift-autologin.conf 2>/dev/null)
+if echo "$DESKTOP_SESSION_CHECK" | grep -qi "gamescope"; then
+  echo "ADVERTENCIA: override todavía apunta a gamescope, abortando restart automático de SDDM" >&2
+  exit 1
+fi
 nohup sudo -n systemctl restart sddm &>/dev/null &
 disown
 exit 0
@@ -158,13 +167,13 @@ if [[ -f /etc/sddm.conf.d/autologin.conf ]]; then
 fi
 
 if [[ $DRY_RUN -eq 1 ]]; then
-  info "[dry-run] create /etc/sddm.conf.d/zz-niri-shift-session.conf Session=${DESKTOP_SESSION}"
+  info "[dry-run] create /etc/sddm.conf.d/zzzz-niri-shift-autologin.conf Session=${DESKTOP_SESSION}"
 else
-  sudo tee /etc/sddm.conf.d/zz-niri-shift-session.conf > /dev/null <<SDDM
+  sudo tee /etc/sddm.conf.d/zzzz-niri-shift-autologin.conf > /dev/null <<SDDM
 [Autologin]
 User=${autologin_user}
 Session=${DESKTOP_SESSION}
-Relogin=true
+Relogin=false
 SDDM
 fi
 

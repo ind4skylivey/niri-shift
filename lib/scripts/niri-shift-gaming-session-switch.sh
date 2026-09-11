@@ -2,7 +2,7 @@
 # @DESKTOP_SESSION@ and @GAMING_SESSION@ replaced at install time.
 set -euo pipefail
 
-CONF="/etc/sddm.conf.d/zz-niri-shift-session.conf"
+CONF="/etc/sddm.conf.d/zzzz-niri-shift-autologin.conf"
 DESKTOP_SESSION="@DESKTOP_SESSION@"
 GAMING_SESSION="gamescope-session-steam-nm"
 
