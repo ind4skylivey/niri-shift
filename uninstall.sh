@@ -37,7 +37,7 @@ BINARIES=(
 
 for f in "${BINARIES[@]}"; do rm_file "$f"; done
 rm_file /usr/share/wayland-sessions/gamescope-session-steam-nm.desktop
-rm_file /etc/sddm.conf.d/zz-niri-shift-session.conf
+rm_file /etc/sddm.conf.d/zzzz-niri-shift-autologin.conf
 rm_file /etc/sudoers.d/niri-shift-session
 sudo rm -rf /usr/local/lib/niri-shift 2>/dev/null || true
 

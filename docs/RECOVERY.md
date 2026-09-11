@@ -10,7 +10,7 @@
 
 - Try Super+Shift+R (evdev monitor)
 - TTY: `sudo systemctl restart sddm`
-- Force desktop session: `sudo sed -i 's/^Session=.*/Session=niri/' /etc/sddm.conf.d/zz-niri-shift-session.conf && sudo systemctl restart sddm`
+- Force desktop session: `sudo sed -i 's/^Session=.*/Session=niri/' /etc/sddm.conf.d/zzzz-niri-shift-autologin.conf && sudo systemctl restart sddm`
 
 ## Keybind monitor not working
 
