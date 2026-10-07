@@ -104,6 +104,9 @@ cleanup() {
   pkill -f gaming-keybind-monitor 2>/dev/null || true
   pkill -f niri-shift-keybind-monitor 2>/dev/null || true
   sudo -n /usr/local/bin/niri-shift-gamescope-nm-stop 2>/dev/null || true
+  # Restore desktop autologin on ANY gamescope session exit (Big Picture
+  # "Exit to Desktop", crash, logout), not only via the Super+Shift+R keybind.
+  sudo -n /usr/local/bin/niri-shift-gaming-session-switch desktop 2>/dev/null || true
   restore_balanced_mode
   rm -f /tmp/.gaming-session-active
   [[ -n "$NIRI_SHIFT_LOG" ]] && echo "=== gamescope session end ===" >> "$NIRI_SHIFT_LOG" 2>/dev/null || true
